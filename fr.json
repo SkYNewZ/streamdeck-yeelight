@@ -1,0 +1,19 @@
+{
+  "Description": "Contrôle tes appareils Yeelight",
+  "com.skynewz.yeelight.toggle": {
+    "Name": "Activer ou désactiver",
+    "Tooltip": "Activer ou désactiver la lampe"
+  },
+  "com.skynewz.yeelight.color": {
+    "Name": "Couleur",
+    "Tooltip": "Définir la couleur de la lampe"
+  },
+  "com.skynewz.yeelight.brightness": {
+    "Name": "Luminosité",
+    "Tooltip": "Définir la luminosité de la lampe"
+  },
+  "com.skynewz.yeelight.brightness_adjust": {
+    "Name": "Ajuster la luminosité",
+    "Tooltip": "Augmenter ou diminuer la luminosité"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "Actions": [
+    {
+      "Icon": "assets/images/actions/power",
+      "Name": "Toggle",
+      "Tooltip": "Toggle",
+      "UUID": "com.skynewz.yeelight.toggle",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "assets/images/states/off",
+          "Name": "Off"
+        },
+        {
+          "Image": "assets/images/states/on",
+          "Name": "On"
+        }
+      ]
+    },
+    {
+      "Icon": "assets/images/actions/color",
+      "Name": "Color",
+      "Tooltip": "Set a color to the light",
+      "UUID": "com.skynewz.yeelight.color",
+      "SupportedInMultiActions": true,
+      "PropertyInspectorPath": "pi/actions/color.html",
+      "States": [
+        {
+          "Image": "assets/images/states/color"
+        }
+      ]
+    },
+    {
+      "Icon": "assets/images/actions/brightness",
+      "Name": "Set brightness",
+      "Tooltip": "Set the light brightness",
+      "UUID": "com.skynewz.yeelight.brightness",
+      "PropertyInspectorPath": "pi/actions/brightness.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "assets/images/states/brightness"
+        }
+      ]
+    },
+    {
+      "Icon": "assets/images/actions/brightness",
+      "Name": "Adjust brightness",
+      "Tooltip": "Increase or decrease the brightness",
+      "UUID": "com.skynewz.yeelight.brightness_adjust",
+      "PropertyInspectorPath": "pi/actions/brightness_adjust.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "assets/images/states/brightness"
+        }
+      ]
+    }
+  ],
+  "Author": "SkYNewZ",
+  "Category": "Yeelight",
+  "CategoryIcon": "assets/images/category",
+  "CodePath": "com.skynewz.yeelight",
+  "CodePathMac": "com.skynewz.yeelight",
+  "CodePathWin": "com.skynewz.yeelight.exe",
+  "Description": "Control your Yeelight lights.",
+  "Icon": "assets/images/icon",
+  "Name": "Yeelight",
+  "Profiles": [],
+  "PropertyInspectorPath": "pi/index.html",
+  "DefaultWindowSize": "",
+  "URL": "https://github.com/SkYNewZ/streamdeck-yeelight",
+  "Version": "0.0.1",
+  "SDKVersion": 2,
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "4.1"
+  },
+  "ApplicationsToMonitor": {}
+}
