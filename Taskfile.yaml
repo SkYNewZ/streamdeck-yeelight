@@ -1,0 +1,10 @@
+version: 3
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    cmds:
+      - go build -ldflags '-s' -o com.skynewz.yeelight .

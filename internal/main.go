@@ -22,6 +22,8 @@ func RealMain() {
 		Color,
 		Brightness,
 		BrightnessAdjust,
+		Temperature,
+		TemperatureAdjust,
 	)
 
 	// Serve the plugin

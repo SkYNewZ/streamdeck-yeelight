@@ -26,7 +26,7 @@ func (a *Action) Handle(event *sdk.ReceivedEvent) error {
 	// unhandled event
 	if validEvent := funk.Contains(a.Event, func(e sdk.EventName) bool {
 		return event.Event == e
-	}); !validEvent && len(a.Event) > 0 {
+	}); !validEvent {
 		return nil
 	}
 
@@ -104,12 +104,29 @@ var Brightness = &Action{
 			return fmt.Errorf("invalid brightness [%s]", s.Brightness)
 		}
 
-		value, err := strconv.ParseUint(s.Brightness, 10, 8)
+		value, err := strconv.Atoi(s.Brightness)
 		if err != nil {
 			return fmt.Errorf("cannot parse brightness [%s]: %w", s.Brightness, err)
 		}
 
-		return light.SetBrightness(uint8(value))
+		return light.SetBrightness(value)
+	},
+}
+
+var Temperature = &Action{
+	Action: "com.skynewz.yeelight.temperature",
+	Event:  []sdk.EventName{sdk.KeyUp},
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
+		if s.Temperature == "" {
+			return fmt.Errorf("invalid temperature [%s]", s.Temperature)
+		}
+
+		value, err := strconv.Atoi(s.Temperature)
+		if err != nil {
+			return fmt.Errorf("cannot parse temperature [%s]: %w", s.Temperature, err)
+		}
+
+		return light.SetColorTemperature(value)
 	},
 }
 
@@ -121,19 +138,43 @@ var BrightnessAdjust = &Action{
 			return fmt.Errorf("invalid brightness delta [%s]", s.Delta)
 		}
 
-		delta, err := strconv.ParseInt(s.Delta, 10, 8)
+		delta, err := strconv.Atoi(s.Delta)
 		if err != nil {
 			return fmt.Errorf("cannot parse brightness delta [%s]: %w", s.Delta, err)
 		}
 
-		var duration uint64 = 500 // default duration
+		duration := 500 // default duration
 		if s.Duration != "" {
-			if v, err := strconv.ParseUint(s.Duration, 10, 64); err == nil {
+			if v, err := strconv.Atoi(s.Duration); err == nil {
 				duration = v
 			}
 		}
 
-		return light.AdjustBright(int8(delta), duration)
+		return light.AdjustBrightness(delta, duration)
+	},
+}
+
+var TemperatureAdjust = &Action{
+	Action: "com.skynewz.yeelight.temperature_adjust",
+	Event:  []sdk.EventName{sdk.KeyUp},
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
+		if s.Delta == "" {
+			return fmt.Errorf("invalid temperature delta [%s]", s.Delta)
+		}
+
+		delta, err := strconv.Atoi(s.Delta)
+		if err != nil {
+			return fmt.Errorf("cannot parse temperature delta [%s]: %w", s.Delta, err)
+		}
+
+		duration := 500 // default duration
+		if s.Duration != "" {
+			if v, err := strconv.Atoi(s.Duration); err == nil {
+				duration = v
+			}
+		}
+
+		return light.AdjustColorTemperature(delta, duration)
 	},
 }
 
@@ -165,11 +206,13 @@ var WillDisappear = &Action{
 			}
 		}
 
-		// stop notifications routine and reset keys with this light
-		defer v.cancel()
+		// no keys left associated to this light
+		// close the connection
+		// stop listening to the light events
 		if len(keys) == 0 {
+			v.cancel()
 			delete(yeelights, s.Address)
-			return nil
+			return v.light.Close()
 		}
 
 		v.keys = keys

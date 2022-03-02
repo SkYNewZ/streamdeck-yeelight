@@ -55,6 +55,19 @@
           "Image": "assets/images/states/brightness"
         }
       ]
+    },
+    {
+      "Icon": "assets/images/actions/brightness",
+      "Name": "Adjust color temperature",
+      "Tooltip": "Make the light warmer or colder",
+      "UUID": "com.skynewz.yeelight.temperature_adjust",
+      "PropertyInspectorPath": "pi/actions/temperature_adjust.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "assets/images/states/brightness"
+        }
+      ]
     }
   ],
   "Author": "SkYNewZ",

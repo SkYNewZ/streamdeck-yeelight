@@ -25,11 +25,12 @@ type yeelightAndKeys struct {
 }
 
 type setting struct {
-	Address    string
-	Color      string
-	Brightness string
-	Delta      string
-	Duration   string
+	Address     string
+	Color       string
+	Brightness  string
+	Delta       string
+	Duration    string
+	Temperature string
 }
 
 func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
@@ -123,11 +124,12 @@ func readSettings(event *sdk.ReceivedEvent) (*setting, error) {
 	}
 
 	return &setting{
-		Address:    getValue(settings["address"]),
-		Color:      getValue(settings["color"]),
-		Brightness: getValue(settings["brightness"]),
-		Delta:      getValue(settings["delta"]),
-		Duration:   getValue(settings["duration"]),
+		Address:     getValue(settings["address"]),
+		Color:       getValue(settings["color"]),
+		Brightness:  getValue(settings["brightness"]),
+		Delta:       getValue(settings["delta"]),
+		Duration:    getValue(settings["duration"]),
+		Temperature: getValue(settings["temperature"]),
 	}, nil
 }
 
