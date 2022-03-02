@@ -47,7 +47,7 @@
       "Icon": "assets/images/actions/brightness",
       "Name": "Adjust brightness",
       "Tooltip": "Increase or decrease the brightness",
-      "UUID": "com.skynewz.yeelight.brightness_adjust",
+      "UUID": "com.skynewz.yeelight.brightness.adjust",
       "PropertyInspectorPath": "pi/actions/brightness_adjust.html",
       "SupportedInMultiActions": true,
       "States": [
@@ -60,8 +60,21 @@
       "Icon": "assets/images/actions/brightness",
       "Name": "Adjust color temperature",
       "Tooltip": "Make the light warmer or colder",
-      "UUID": "com.skynewz.yeelight.temperature_adjust",
+      "UUID": "com.skynewz.yeelight.temperature.adjust",
       "PropertyInspectorPath": "pi/actions/temperature_adjust.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "assets/images/states/brightness"
+        }
+      ]
+    },
+    {
+      "Icon": "assets/images/actions/brightness",
+      "Name": "Set color temperature",
+      "Tooltip": "Set the light color temperature",
+      "UUID": "com.skynewz.yeelight.temperature",
+      "PropertyInspectorPath": "pi/actions/temperature.html",
       "SupportedInMultiActions": true,
       "States": [
         {

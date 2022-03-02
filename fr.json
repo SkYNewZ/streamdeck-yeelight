@@ -12,12 +12,16 @@
     "Name": "Luminosité",
     "Tooltip": "Définir la luminosité de la lampe"
   },
-  "com.skynewz.yeelight.brightness_adjust": {
+  "com.skynewz.yeelight.brightness.adjust": {
     "Name": "Ajuster la luminosité",
     "Tooltip": "Augmenter ou diminuer la luminosité"
   },
-  "com.skynewz.yeelight.temperature_adjust": {
+  "com.skynewz.yeelight.temperature.adjust": {
     "Name": "Ajuster la température",
     "Tooltip": "Rendre la lampe plus ou moins chaud"
+  },
+  "com.skynewz.yeelight.temperature": {
+    "Name": "Température",
+    "Tooltip": "Définir la température de la lampe"
   }
 }

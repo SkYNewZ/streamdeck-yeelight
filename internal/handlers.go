@@ -124,7 +124,7 @@ var Temperature = &Action{
 }
 
 var BrightnessAdjust = &Action{
-	Action: "com.skynewz.yeelight.brightness_adjust",
+	Action: "com.skynewz.yeelight.brightness.adjust",
 	Event:  []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
 		if s.Delta == "" {
@@ -148,7 +148,7 @@ var BrightnessAdjust = &Action{
 }
 
 var TemperatureAdjust = &Action{
-	Action: "com.skynewz.yeelight.temperature_adjust",
+	Action: "com.skynewz.yeelight.temperature.adjust",
 	Event:  []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
 		if s.Delta == "" {
@@ -173,7 +173,7 @@ var TemperatureAdjust = &Action{
 
 var WillAppear = &Action{
 	Action: "",
-	Event:  []sdk.EventName{sdk.WillAppear},
+	Event:  []sdk.EventName{sdk.WillAppear, sdk.DidReceiveSettings},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
 		_, err := makeYeelight(event, s)
 		return err

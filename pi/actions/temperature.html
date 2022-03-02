@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name=viewport
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>streamdeck-yeelight</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+</head>
+
+<body>
+
+<div class="sdpi-wrapper">
+    <div class="sdpi-item">
+        <label for="address" class="sdpi-item-label">IP address</label>
+        <input
+                class="sdpi-item-value sdProperty"
+                id="address"
+                placeholder="e.g. 192.168.1.108"
+                required
+                autofocus
+                pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+                onblur="setSettings()"
+        >
+    </div>
+
+    <div type="range" class="sdpi-item">
+        <div class="sdpi-item-label">Temperature</div>
+        <label class="sdpi-item-value">
+            <span class="clickable" value=1700>1700</span>
+            <input
+                    class="sdProperty"
+                    id="temperature"
+                    type="range"
+                    min="1700"
+                    max="6500"
+                    value=4100
+                    onchange="setSettings()"
+            >
+            <span class="clickable" value="6500">6500</span>
+        </label>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+</body>
+</html>
