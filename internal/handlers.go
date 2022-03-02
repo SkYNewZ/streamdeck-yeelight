@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/SkYNewZ/go-yeelight"
-	"github.com/SkYNewZ/streamdeck-yeelight/pkg/sdk"
+	sdk "github.com/SkYNewZ/streamdeck-sdk"
 	"github.com/thoas/go-funk"
 	"gopkg.in/go-playground/colors.v1"
 )
@@ -14,7 +14,6 @@ type Action struct {
 	Action string
 	Event  []sdk.EventName
 	Run    func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error
-	PreRun func(event *sdk.ReceivedEvent, s *setting) error
 }
 
 func (a *Action) Handle(event *sdk.ReceivedEvent) error {
@@ -36,14 +35,8 @@ func (a *Action) Handle(event *sdk.ReceivedEvent) error {
 		return err
 	}
 
-	if a.PreRun != nil {
-		if err := a.PreRun(event, settings); err != nil {
-			return err
-		}
-	}
-
-	// init connection with the Yeelight
-	light, err := getYeelight(settings)
+	// get light on memory
+	light, err := getYeelight(event, settings)
 	if err != nil {
 		return err
 	}
@@ -178,11 +171,12 @@ var TemperatureAdjust = &Action{
 	},
 }
 
-var DidReceiveSettingsWillAppear = &Action{
+var WillAppear = &Action{
 	Action: "",
-	Event:  []sdk.EventName{sdk.WillAppear, sdk.DidReceiveSettings},
-	PreRun: func(event *sdk.ReceivedEvent, s *setting) error {
-		return makeYeelight(event, s)
+	Event:  []sdk.EventName{sdk.WillAppear},
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
+		_, err := makeYeelight(event, s)
+		return err
 	},
 }
 
@@ -212,7 +206,7 @@ var WillDisappear = &Action{
 		if len(keys) == 0 {
 			v.cancel()
 			delete(yeelights, s.Address)
-			return v.light.Close()
+			return nil
 		}
 
 		v.keys = keys

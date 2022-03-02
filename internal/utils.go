@@ -3,11 +3,10 @@ package internal
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/SkYNewZ/go-yeelight"
-	"github.com/SkYNewZ/streamdeck-yeelight/pkg/sdk"
+	sdk "github.com/SkYNewZ/streamdeck-sdk"
 )
 
 var (
@@ -33,7 +32,7 @@ type setting struct {
 	Temperature string
 }
 
-func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
+func makeYeelight(event *sdk.ReceivedEvent, s *setting) (yeelight.Yeelight, error) {
 	// if this light already registered on a key
 	lock.Lock()
 	defer lock.Unlock()
@@ -43,7 +42,7 @@ func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
 		// initialize a connection
 		light, err := yeelight.New(s.Address)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// store it
@@ -62,7 +61,7 @@ func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
 		// listen for notifications on the light
 		notificationsCh, err := yeelights[s.Address].light.Listen(ctx)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// routine to handle remote changed state
@@ -91,7 +90,7 @@ func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
 				}
 			}
 		}(notificationsCh, yeelights[s.Address])
-		return nil
+		return light, nil
 	}
 
 	// refresh the state
@@ -100,12 +99,12 @@ func makeYeelight(event *sdk.ReceivedEvent, s *setting) error {
 	// if this light contains this current event key context
 	for _, c := range v.keys {
 		if c == event.Context {
-			return nil // light already registered and contain this key, nothing to do
+			return v.light, nil // light already registered and contain this key, nothing to do
 		}
 	}
 
 	v.keys = append(v.keys, event.Context) // else, append this key
-	return nil
+	return v.light, nil
 }
 
 // readSettings of given event supported settings
@@ -133,10 +132,11 @@ func readSettings(event *sdk.ReceivedEvent) (*setting, error) {
 	}, nil
 }
 
-func getYeelight(settings *setting) (yeelight.Yeelight, error) {
+func getYeelight(event *sdk.ReceivedEvent, settings *setting) (yeelight.Yeelight, error) {
 	light, found := yeelights[settings.Address]
 	if !found || light == nil {
-		return nil, fmt.Errorf("cannot find Yeelight for address [%s]", settings.Address)
+		// like not registered on memory, make it
+		return makeYeelight(event, settings)
 	}
 
 	return light.light, nil

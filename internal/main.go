@@ -1,8 +1,6 @@
 package internal
 
-import (
-	"github.com/SkYNewZ/streamdeck-yeelight/pkg/sdk"
-)
+import sdk "github.com/SkYNewZ/streamdeck-sdk"
 
 // our global StreamDeck instance
 var streamdeck *sdk.StreamDeck
@@ -16,7 +14,7 @@ func RealMain() {
 
 	// Register our handlers
 	streamdeck.Handler(
-		DidReceiveSettingsWillAppear,
+		WillAppear,
 		WillDisappear,
 		Toggle,
 		Color,
