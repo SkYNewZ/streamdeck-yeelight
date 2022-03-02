@@ -6,5 +6,14 @@ tasks:
       - task: build
 
   build:
+    desc: Build the Go binary
     cmds:
-      - go build -ldflags '-s' -o com.skynewz.yeelight .
+      - go build -ldflags '-s' -o {{.OUTPUT}} .
+    vars:
+      OUTPUT: '{{default "com.skynewz.yeelight" .OUTPUT}}'
+
+  build:windows:
+    cmds:
+      - task: build
+        vars:
+          OUTPUT: com.skynewz.yeelight.exe
