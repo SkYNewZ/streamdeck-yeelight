@@ -11,11 +11,12 @@ import (
 
 var (
 	ErrMissingSettings = errors.New("missing action settings")
-	yeelights          = make(map[string]*yeelightAndKeys, 0)
-	lock               = &sync.Mutex{}
+
+	yeelights = make(map[string]*yeelightAndKeys, 0)
+	lock      = &sync.Mutex{}
 )
 
-// yeelightAndKeys is used to manage global state
+// yeelightAndKeys is used to manage global state.
 type yeelightAndKeys struct {
 	light  yeelight.Yeelight
 	keys   []string           // array of context where this light is defined
@@ -32,34 +33,34 @@ type setting struct {
 	Temperature string
 }
 
-func makeYeelight(event *sdk.ReceivedEvent, s *setting) (yeelight.Yeelight, error) {
+func makeYeelight(event *sdk.ReceivedEvent, settings *setting) (yeelight.Yeelight, error) {
 	// if this light already registered on a key
 	lock.Lock()
 	defer lock.Unlock()
 
-	v, ok := yeelights[s.Address]
-	if !ok || v == nil {
+	lightAndKeys, ok := yeelights[settings.Address]
+	if !ok || lightAndKeys == nil {
 		// initialize a connection
-		light, err := yeelight.New(s.Address)
+		light, err := yeelight.New(settings.Address)
 		if err != nil {
 			return nil, err
 		}
 
 		// store it
 		ctx, cancel := context.WithCancel(context.Background())
-		yeelights[s.Address] = &yeelightAndKeys{
+		yeelights[settings.Address] = &yeelightAndKeys{
 			light:  light,
 			keys:   []string{event.Context},
 			cancel: cancel,
 			on:     false, // shutdown by default
 		}
 
-		if power, err := yeelights[s.Address].light.IsPowerOn(); err == nil {
-			yeelights[s.Address].on = power
+		if power, err := yeelights[settings.Address].light.IsPowerOn(); err == nil {
+			yeelights[settings.Address].on = power
 		}
 
 		// listen for notifications on the light
-		notificationsCh, err := yeelights[s.Address].light.Listen(ctx)
+		notificationsCh, err := yeelights[settings.Address].light.Listen(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -89,25 +90,25 @@ func makeYeelight(event *sdk.ReceivedEvent, s *setting) (yeelight.Yeelight, erro
 					streamdeck.SetState(state, uint8(boolToInt(light.on)))
 				}
 			}
-		}(notificationsCh, yeelights[s.Address])
+		}(notificationsCh, yeelights[settings.Address])
 		return light, nil
 	}
 
 	// refresh the state
-	streamdeck.SetState(event.Context, uint8(boolToInt(v.on)))
+	streamdeck.SetState(event.Context, uint8(boolToInt(lightAndKeys.on)))
 
 	// if this light contains this current event key context
-	for _, c := range v.keys {
+	for _, c := range lightAndKeys.keys {
 		if c == event.Context {
-			return v.light, nil // light already registered and contain this key, nothing to do
+			return lightAndKeys.light, nil // light already registered and contain this key, nothing to do
 		}
 	}
 
-	v.keys = append(v.keys, event.Context) // else, append this key
-	return v.light, nil
+	lightAndKeys.keys = append(lightAndKeys.keys, event.Context) // else, append this key
+	return lightAndKeys.light, nil
 }
 
-// readSettings of given event supported settings
+// readSettings of given event supported settings.
 func readSettings(event *sdk.ReceivedEvent) (*setting, error) {
 	settings := event.Payload.Settings
 	if settings == nil {

@@ -2,7 +2,7 @@ package internal
 
 import sdk "github.com/SkYNewZ/streamdeck-sdk"
 
-// our global StreamDeck instance
+// our global StreamDeck instance.
 var streamdeck *sdk.StreamDeck
 
 func RealMain() {

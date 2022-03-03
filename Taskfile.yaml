@@ -21,6 +21,12 @@ tasks:
       - rm -f com.skynewz.yeelight*
     dir: com.skynewz.yeelight.sdPlugin
 
+  lint:all:
+    desc: Lint the Go code
+    cmds:
+      - golangci-lint run --no-config --enable-all --disable wrapcheck,gochecknoglobals,nlreturn,ireturn,wsl,golint,interfacer,maligned,scopelint --skip-dirs cmd/debug --timeout=10m {{.CLI_ARGS}}
+    dir: com.skynewz.yeelight.sdPlugin
+
   build:windows:
     desc: Build the Go binary for Windows
     cmds:

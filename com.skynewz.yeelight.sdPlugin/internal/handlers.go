@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,10 +11,17 @@ import (
 	"gopkg.in/go-playground/colors.v1"
 )
 
+var (
+	ErrInvalidColor       = errors.New("invalid color")
+	ErrInvalidBrightness  = errors.New("invalid brightness")
+	ErrInvalidTemperature = errors.New("invalid temperature")
+	ErrInvalidDelta       = errors.New("invalid delta")
+)
+
 type Action struct {
 	Action string
 	Event  []sdk.EventName
-	Run    func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error
+	Run    func(*sdk.ReceivedEvent, yeelight.Yeelight, *setting) error
 }
 
 func (a *Action) Handle(event *sdk.ReceivedEvent) error {
@@ -75,31 +83,32 @@ var Toggle = &Action{
 var Color = &Action{
 	Action: "com.skynewz.yeelight.color",
 	Event:  []sdk.EventName{sdk.KeyUp},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		if s.Color == "" {
-			return fmt.Errorf("invalid color [%s]", s.Color)
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
+		if settings.Color == "" {
+			return fmt.Errorf("%w: %s", ErrInvalidColor, settings.Color)
 		}
 
-		hex, err := colors.ParseHEX(s.Color)
+		hex, err := colors.ParseHEX(settings.Color)
 		if err != nil {
-			return fmt.Errorf("cannot parse color [%s]: %w", s.Color, err)
+			return fmt.Errorf("cannot parse color [%s]: %w", settings.Color, err)
 		}
 
-		return light.SetRGB(hex.ToRGB().R, hex.ToRGB().G, hex.ToRGB().B)
+		rgb := hex.ToRGB()
+		return light.SetRGB(rgb.R, rgb.G, rgb.B)
 	},
 }
 
 var Brightness = &Action{
 	Action: "com.skynewz.yeelight.brightness",
 	Event:  []sdk.EventName{sdk.KeyUp},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		if s.Brightness == "" {
-			return fmt.Errorf("invalid brightness [%s]", s.Brightness)
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
+		if settings.Brightness == "" {
+			return fmt.Errorf("%w: %s", ErrInvalidBrightness, settings.Brightness)
 		}
 
-		value, err := strconv.Atoi(s.Brightness)
+		value, err := strconv.Atoi(settings.Brightness)
 		if err != nil {
-			return fmt.Errorf("cannot parse brightness [%s]: %w", s.Brightness, err)
+			return fmt.Errorf("cannot parse brightness [%s]: %w", settings.Brightness, err)
 		}
 
 		return light.SetBrightness(value)
@@ -109,14 +118,14 @@ var Brightness = &Action{
 var Temperature = &Action{
 	Action: "com.skynewz.yeelight.temperature",
 	Event:  []sdk.EventName{sdk.KeyUp},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		if s.Temperature == "" {
-			return fmt.Errorf("invalid temperature [%s]", s.Temperature)
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
+		if settings.Temperature == "" {
+			return fmt.Errorf("%w: %s", ErrInvalidTemperature, settings.Temperature)
 		}
 
-		value, err := strconv.Atoi(s.Temperature)
+		value, err := strconv.Atoi(settings.Temperature)
 		if err != nil {
-			return fmt.Errorf("cannot parse temperature [%s]: %w", s.Temperature, err)
+			return fmt.Errorf("cannot parse temperature [%s]: %w", settings.Temperature, err)
 		}
 
 		return light.SetColorTemperature(value)
@@ -126,19 +135,19 @@ var Temperature = &Action{
 var BrightnessAdjust = &Action{
 	Action: "com.skynewz.yeelight.brightness.adjust",
 	Event:  []sdk.EventName{sdk.KeyUp},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		if s.Delta == "" {
-			return fmt.Errorf("invalid brightness delta [%s]", s.Delta)
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
+		if settings.Delta == "" {
+			return fmt.Errorf("%w: %s", ErrInvalidDelta, settings.Delta)
 		}
 
-		delta, err := strconv.Atoi(s.Delta)
+		delta, err := strconv.Atoi(settings.Delta)
 		if err != nil {
-			return fmt.Errorf("cannot parse brightness delta [%s]: %w", s.Delta, err)
+			return fmt.Errorf("cannot parse brightness delta [%s]: %w", settings.Delta, err)
 		}
 
 		duration := 500 // default duration
-		if s.Duration != "" {
-			if v, err := strconv.Atoi(s.Duration); err == nil {
+		if settings.Duration != "" {
+			if v, err := strconv.Atoi(settings.Duration); err == nil {
 				duration = v
 			}
 		}
@@ -150,19 +159,19 @@ var BrightnessAdjust = &Action{
 var TemperatureAdjust = &Action{
 	Action: "com.skynewz.yeelight.temperature.adjust",
 	Event:  []sdk.EventName{sdk.KeyUp},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		if s.Delta == "" {
-			return fmt.Errorf("invalid temperature delta [%s]", s.Delta)
+	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
+		if settings.Delta == "" {
+			return fmt.Errorf("%w: %s", ErrInvalidDelta, settings.Delta)
 		}
 
-		delta, err := strconv.Atoi(s.Delta)
+		delta, err := strconv.Atoi(settings.Delta)
 		if err != nil {
-			return fmt.Errorf("cannot parse temperature delta [%s]: %w", s.Delta, err)
+			return fmt.Errorf("cannot parse temperature delta [%s]: %w", settings.Delta, err)
 		}
 
 		duration := 500 // default duration
-		if s.Duration != "" {
-			if v, err := strconv.Atoi(s.Duration); err == nil {
+		if settings.Duration != "" {
+			if v, err := strconv.Atoi(settings.Duration); err == nil {
 				duration = v
 			}
 		}
@@ -174,8 +183,8 @@ var TemperatureAdjust = &Action{
 var WillAppear = &Action{
 	Action: "",
 	Event:  []sdk.EventName{sdk.WillAppear, sdk.DidReceiveSettings},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
-		_, err := makeYeelight(event, s)
+	Run: func(event *sdk.ReceivedEvent, _ yeelight.Yeelight, settings *setting) error {
+		_, err := makeYeelight(event, settings)
 		return err
 	},
 }
@@ -183,18 +192,18 @@ var WillAppear = &Action{
 var WillDisappear = &Action{
 	Action: "",
 	Event:  []sdk.EventName{sdk.WillDisappear},
-	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, s *setting) error {
+	Run: func(event *sdk.ReceivedEvent, _ yeelight.Yeelight, settings *setting) error {
 		lock.Lock()
 		defer lock.Unlock()
-		v, ok := yeelights[s.Address]
-		if !ok || v == nil {
+		light, ok := yeelights[settings.Address]
+		if !ok || light == nil {
 			// this light is not stored
 			return nil
 		}
 
 		// filter keys by removing the current disappearing one
-		var keys = make([]string, 0)
-		for _, k := range v.keys {
+		keys := make([]string, 0)
+		for _, k := range light.keys {
 			if k != event.Context {
 				keys = append(keys, k)
 			}
@@ -204,12 +213,12 @@ var WillDisappear = &Action{
 		// close the connection
 		// stop listening to the light events
 		if len(keys) == 0 {
-			v.cancel()
-			delete(yeelights, s.Address)
+			light.cancel()
+			delete(yeelights, settings.Address)
 			return nil
 		}
 
-		v.keys = keys
+		light.keys = keys
 		return nil
 	},
 }
