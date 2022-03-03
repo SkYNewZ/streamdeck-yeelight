@@ -7,7 +7,6 @@ import (
 
 	"github.com/SkYNewZ/go-yeelight"
 	sdk "github.com/SkYNewZ/streamdeck-sdk"
-	"github.com/thoas/go-funk"
 	"gopkg.in/go-playground/colors.v1"
 )
 
@@ -20,35 +19,52 @@ var (
 
 type Action struct {
 	Action string
-	Event  []sdk.EventName
+	Events []sdk.EventName
 	Run    func(*sdk.ReceivedEvent, yeelight.Yeelight, *setting) error
+}
+
+func (a Action) Logf(event *sdk.ReceivedEvent, format string, args ...interface{}) {
+	message := fmt.Sprintf("[DEBUG] received event [%s] for action [%s]: ", event.Event, a.Action)
+	message += fmt.Sprintf(format, args...)
+	streamdeck.Log(message)
 }
 
 func (a *Action) Handle(event *sdk.ReceivedEvent) error {
 	// unhandled action
 	if a.Action != "" && event.Action != a.Action {
+		a.Logf(event, "unhandled action")
 		return nil
 	}
 
 	// unhandled event
-	if validEvent := funk.Contains(a.Event, func(e sdk.EventName) bool {
-		return event.Event == e
-	}); !validEvent {
+	var found bool
+	for _, e := range a.Events {
+		if e == event.Event {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		a.Logf(event, "unhandled event. supported events: %s", a.Events)
 		return nil
 	}
 
 	// read settings
+	a.Logf(event, "reading settings")
 	settings, err := readSettings(event)
 	if err != nil {
 		return err
 	}
 
 	// get light on memory
+	a.Logf(event, "getting light on memory with settings [%s]", settings)
 	light, err := getYeelight(event, settings)
 	if err != nil {
 		return err
 	}
 
+	a.Logf(event, "running action with settings [%s]", settings)
 	if a.Run != nil {
 		return a.Run(event, light, settings)
 	}
@@ -58,7 +74,7 @@ func (a *Action) Handle(event *sdk.ReceivedEvent) error {
 
 var Toggle = &Action{
 	Action: "com.skynewz.yeelight.toggle",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, _ *setting) error {
 		var wantedState bool // off by default
 		switch {
@@ -82,7 +98,7 @@ var Toggle = &Action{
 
 var Color = &Action{
 	Action: "com.skynewz.yeelight.color",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
 		if settings.Color == "" {
 			return fmt.Errorf("%w: %s", ErrInvalidColor, settings.Color)
@@ -100,7 +116,7 @@ var Color = &Action{
 
 var Brightness = &Action{
 	Action: "com.skynewz.yeelight.brightness",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
 		if settings.Brightness == "" {
 			return fmt.Errorf("%w: %s", ErrInvalidBrightness, settings.Brightness)
@@ -117,7 +133,7 @@ var Brightness = &Action{
 
 var Temperature = &Action{
 	Action: "com.skynewz.yeelight.temperature",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
 		if settings.Temperature == "" {
 			return fmt.Errorf("%w: %s", ErrInvalidTemperature, settings.Temperature)
@@ -134,7 +150,7 @@ var Temperature = &Action{
 
 var BrightnessAdjust = &Action{
 	Action: "com.skynewz.yeelight.brightness.adjust",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
 		if settings.Delta == "" {
 			return fmt.Errorf("%w: %s", ErrInvalidDelta, settings.Delta)
@@ -158,7 +174,7 @@ var BrightnessAdjust = &Action{
 
 var TemperatureAdjust = &Action{
 	Action: "com.skynewz.yeelight.temperature.adjust",
-	Event:  []sdk.EventName{sdk.KeyUp},
+	Events: []sdk.EventName{sdk.KeyUp},
 	Run: func(event *sdk.ReceivedEvent, light yeelight.Yeelight, settings *setting) error {
 		if settings.Delta == "" {
 			return fmt.Errorf("%w: %s", ErrInvalidDelta, settings.Delta)
@@ -182,7 +198,7 @@ var TemperatureAdjust = &Action{
 
 var WillAppear = &Action{
 	Action: "",
-	Event:  []sdk.EventName{sdk.WillAppear, sdk.DidReceiveSettings},
+	Events: []sdk.EventName{sdk.WillAppear, sdk.DidReceiveSettings},
 	Run: func(event *sdk.ReceivedEvent, _ yeelight.Yeelight, settings *setting) error {
 		_, err := makeYeelight(event, settings)
 		return err
@@ -191,7 +207,7 @@ var WillAppear = &Action{
 
 var WillDisappear = &Action{
 	Action: "",
-	Event:  []sdk.EventName{sdk.WillDisappear},
+	Events: []sdk.EventName{sdk.WillDisappear},
 	Run: func(event *sdk.ReceivedEvent, _ yeelight.Yeelight, settings *setting) error {
 		lock.Lock()
 		defer lock.Unlock()

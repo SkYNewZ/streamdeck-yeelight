@@ -1,0 +1,6 @@
+version: 3
+
+tasks:
+  uninstall:
+    cmds:
+      - rm -rf "$HOME/Library/Application Support/com.elgato.StreamDeck/Plugins/com.skynewz.yeelight.sdPlugin"

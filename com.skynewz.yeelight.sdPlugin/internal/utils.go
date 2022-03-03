@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/SkYNewZ/go-yeelight"
@@ -10,6 +12,8 @@ import (
 )
 
 var (
+	_ fmt.Stringer = (*setting)(nil)
+
 	ErrMissingSettings = errors.New("missing action settings")
 
 	yeelights = make(map[string]*yeelightAndKeys, 0)
@@ -31,6 +35,28 @@ type setting struct {
 	Delta       string
 	Duration    string
 	Temperature string
+}
+
+// String returns a string representation of the setting as JSON if encoding succeeds.
+func (s setting) String() string {
+	data, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Sprintf("Address: %s, "+
+			"Color: %s, "+
+			"Brightness: %s, "+
+			"Delta: %s, "+
+			"Duration: %s, "+
+			"Temperature: %s",
+			s.Address,
+			s.Color,
+			s.Brightness,
+			s.Delta,
+			s.Duration,
+			s.Temperature,
+		)
+	}
+
+	return string(data)
 }
 
 func makeYeelight(event *sdk.ReceivedEvent, settings *setting) (yeelight.Yeelight, error) {

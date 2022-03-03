@@ -1,5 +1,9 @@
 version: 3
 
+includes:
+  elgato:
+    taskfile: ./hack/Taskfile_{{OS}}.yml
+
 tasks:
   default:
     cmds:
@@ -18,8 +22,8 @@ tasks:
   .clean:
     desc: Clean artifacts
     cmds:
-      - rm -f com.skynewz.yeelight*
-    dir: com.skynewz.yeelight.sdPlugin
+      - rm -f com.skynewz.yeelight.streamDeckPlugin
+      - rm -f com.skynewz.yeelight.sdPlugin/com.skynewz.yeelight*
 
   lint:all:
     desc: Lint the Go code
@@ -55,3 +59,8 @@ tasks:
       - build:darwin
     cmds:
       - ./hack/DistributionTool --build --input com.skynewz.yeelight.sdPlugin -o .
+
+  uninstall:
+    desc: Uninstall the plugin
+    cmds:
+      - task: elgato:uninstall
