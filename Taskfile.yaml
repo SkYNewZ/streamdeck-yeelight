@@ -3,17 +3,49 @@ version: 3
 tasks:
   default:
     cmds:
-      - task: build
+      - task: .build
 
-  build:
+  .build:
     desc: Build the Go binary
     cmds:
       - go build -ldflags '-s' -o {{.OUTPUT}} .
+    dir: com.skynewz.yeelight.sdPlugin
     vars:
       OUTPUT: '{{default "com.skynewz.yeelight" .OUTPUT}}'
+    env:
+      CGO_ENABLED: 0
+
+  .clean:
+    desc: Clean artifacts
+    cmds:
+      - rm -f com.skynewz.yeelight*
+    dir: com.skynewz.yeelight.sdPlugin
 
   build:windows:
+    desc: Build the Go binary for Windows
     cmds:
-      - task: build
+      - task: .build
         vars:
           OUTPUT: com.skynewz.yeelight.exe
+    env:
+      GOOS: windows
+      GOARCH: amd64
+
+  build:darwin:
+    desc: Build the Go binary for MacOS
+    cmds:
+      - task: .build
+        vars:
+          OUTPUT: com.skynewz.yeelight
+    env:
+      GOOS: darwin
+      GOARCH: amd64
+
+  package:
+    desc: Make the .streamDeckPlugin file
+    deps:
+      - .clean
+      - build:windows
+      - build:darwin
+    cmds:
+      - ./hack/DistributionTool --build --input com.skynewz.yeelight.sdPlugin -o .
