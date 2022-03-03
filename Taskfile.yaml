@@ -1,29 +1,18 @@
 version: 3
 
 includes:
-  elgato:
-    taskfile: ./hack/Taskfile_{{OS}}.yml
+  misc: ./hack/Taskfile_{{OS}}.yaml
+
+env:
+  GOARCH: amd64
+  CGO_ENABLED: 0
 
 tasks:
   default:
     cmds:
-      - task: .build
-
-  .build:
-    desc: Build the Go binary
-    cmds:
-      - go build -ldflags '-s' -o {{.OUTPUT}} .
-    dir: com.skynewz.yeelight.sdPlugin
-    vars:
-      OUTPUT: '{{default "com.skynewz.yeelight" .OUTPUT}}'
-    env:
-      CGO_ENABLED: 0
-
-  .clean:
-    desc: Clean artifacts
-    cmds:
-      - rm -f com.skynewz.yeelight.streamDeckPlugin
-      - rm -f com.skynewz.yeelight.sdPlugin/com.skynewz.yeelight*
+      - task: lint:all
+        ignore_error: true # For now
+      - task: build
 
   lint:all:
     desc: Lint the Go code
@@ -31,36 +20,56 @@ tasks:
       - golangci-lint run --no-config --enable-all --disable wrapcheck,gochecknoglobals,nlreturn,ireturn,wsl,golint,interfacer,maligned,scopelint --skip-dirs cmd/debug --timeout=10m {{.CLI_ARGS}}
     dir: com.skynewz.yeelight.sdPlugin
 
+  build:
+    desc: Build the plugin for all supported platforms
+    cmds:
+      - task: build:darwin
+      - task: build:windows
+
   build:windows:
     desc: Build the Go binary for Windows
     cmds:
-      - task: .build
-        vars:
-          OUTPUT: com.skynewz.yeelight.exe
+      - go build -ldflags="-s -w" -o com.skynewz.yeelight.exe .
+    dir: com.skynewz.yeelight.sdPlugin
     env:
       GOOS: windows
-      GOARCH: amd64
 
   build:darwin:
     desc: Build the Go binary for MacOS
     cmds:
-      - task: .build
-        vars:
-          OUTPUT: com.skynewz.yeelight
+      - go build -ldflags="-s -w" -o com.skynewz.yeelight .
+    dir: com.skynewz.yeelight.sdPlugin
     env:
       GOOS: darwin
-      GOARCH: amd64
 
-  package:
-    desc: Make the .streamDeckPlugin file
-    deps:
-      - .clean
-      - build:windows
-      - build:darwin
+  .package:
     cmds:
       - ./hack/DistributionTool --build --input com.skynewz.yeelight.sdPlugin -o .
 
-  uninstall:
-    desc: Uninstall the plugin
+  clean:
+    desc: Clean artifacts
     cmds:
-      - task: elgato:uninstall
+      - rm -f com.skynewz.yeelight.streamDeckPlugin
+      - rm -f com.skynewz.yeelight.sdPlugin/com.skynewz.yeelight*
+
+  package:
+    desc: Package using .streamDeckPlugin file
+    cmds:
+      - task: version # Ensure version from the latest tag and manifest are not the same
+      - task: clean
+      - task: build:darwin
+      - task: build:windows
+      - task: .package
+
+  version:
+    desc: Check wether manifest is related to latest tag
+    silent: true
+    cmds:
+      - echo "Latest version from Git {{.VERSION_TAG}}"
+      - echo "Latest version from manifest {{.VERSION_MANIFEST}}"
+      - "[ \"{{.VERSION_TAG}}\" != \"{{.VERSION_MANIFEST}}\" ]"
+    vars:
+      VERSION_TAG:
+        sh: git describe --tags --abbrev=0 | sed 's/v//'
+      VERSION_MANIFEST:
+        sh: cat com.skynewz.yeelight.sdPlugin/manifest.json | jq -r .Version
