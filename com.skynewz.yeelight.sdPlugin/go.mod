@@ -8,4 +8,4 @@ require (
 	gopkg.in/go-playground/colors.v1 v1.2.0
 )
 
-require github.com/gorilla/websocket v1.5.0 // indirect
+require github.com/gorilla/websocket v1.5.3 // indirect
